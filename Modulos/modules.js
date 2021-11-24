@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// Comprueba si la ruta es valida. Se usa el método 'stat' de node.js
+// Comprueba si la ruta es valida. Se usa el método 'fs.stat' de node.js
 const checkingValidPath = (path) => {
     return new Promise((resolve, reject) => {
         fs.stat(path, (err, stats) => {
@@ -34,10 +34,10 @@ const verifyingTypePath = (filePath) => {
 // Comprueba los archivos dentro de un directorio
 const searchTheDirectory = (directoryPath) => {
     return new Promise((resolve, reject) => {
-        fs.readdir(directoryPath, (err, files) => {
-            if (err) {
-                reject(console.log('Este directorio No posee un archivo .md', err.message));
-            } else {
+        fs.readdir(directoryPath, (err, files) => { // Entra en el directorio  
+            if (err) { // si hay un error se imprime el error en consola
+                reject(console.log('Este directorio posee un error', err.message));
+            } else { // recorre los archivos dentro del directorio, buscando los que tengan extensión .md
                 files.forEach(file => {
                     if (path.extname(file) === '.md')
                       resolve(console.log("En este directorio hay:", file));
