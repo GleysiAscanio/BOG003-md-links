@@ -3,7 +3,7 @@ module.exports = () => {
 };
 
 const fs = require('fs');
-const ModulePath = require('path');
+const modulePath = require('path');
 
 //Función MDLinks
 const mdLinks = (path) => {
@@ -35,36 +35,50 @@ mdLinks('./Modulos/')
 // Comprueba si el archivo es un '.md' se usa el método 'path.extname'
 const verifyingTypePath = (filePath) => {
     return new Promise((resolve, reject) => {
-        if (ModulePath.extname(filePath) === '.md') { //Comprueba que la extensión de la ruta es '.md'
-            resolve(console.log('Este archivo es', ModulePath.extname(filePath)));
+        if (modulePath.extname(filePath) === '.md') { //Comprueba que la extensión de la ruta es '.md'
+            resolve(console.log('Este archivo es', modulePath.extname(filePath)));
         } else  { // Informa al usuario el tipo de extensión del archivo y que no podrá ser procesado
-            reject(console.log('Este archivo es', ModulePath.extname(filePath), 'no podemos procesarlo'))
+            reject(console.log('Este archivo es', modulePath.extname(filePath), 'no podemos procesarlo'))
         }
     })
 }
 
 // Comprueba los archivos dentro de un directorio
-const searchTheDirectory = (directoryPath) => {
+const searchTheDirectory = (path) => {
     return new Promise((resolve, reject) => {
+      // creo una variable con un array vacío
       let found = [];
-        fs.readdir(directoryPath, (err, files) => { // Entra en el directorio  
+        fs.readdir(path, (err, files) => { // Entra en el directorio  
             if (err) { // si hay un error se imprime el error en consola
                 reject(console.log('Este directorio posee un error', err.message));
             } else { // recorre los archivos dentro del directorio, buscando los que tengan extensión .md
                 files.forEach(file => {
-                    if (ModulePath.extname(file) === '.md') {
-                      found.push(file);
+                    if (modulePath.extname(file) === '.md') {
+                        // obtengo la ruta absoluta de los archivos y llamo la función que los lee.
+                      const test = modulePath.resolve(path);
+                      const pathAdsoluta = test + '\\' + file;
+                      readPath(pathAdsoluta)
+                      found.push(file); // lleno mi array con cada archivo .md que va encontrando mi forEach
                     }
                   })
+                  //Por el momento imprimo en consola mi arreglo de archivos encontrados
                   resolve(console.log("En este directorio hay:", found));
             }
         })
     })
 }
 
-// Función que valida true or false
-const validatePath = (path) => {
-  return new Promise((resolve, reject) => {
-    
-  })
+// Función que lee los archivos encontrados
+const readPath = (path) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, 'UTF8', (err, data) => {
+            if(err) {
+                reject(console.log('No se pudo leer la ruta, por favor verifique.', err.message))
+            }
+            resolve(console.log( path, data))
+        })
+    })
 }
+
+
+
