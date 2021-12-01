@@ -33,27 +33,29 @@ const checkingValidPath = (path) => {
 const verifyingTypePath = (filePath) => {
     return new Promise((resolve, reject) => {
         if (modulePath.extname(filePath) === '.md') { //Comprueba que la extensión de el archivo es '.md'
-            const test = modulePath.resolve(filePath); // se valida la ruta absoluta del archivo
-            const pathAdsoluta = test + '\\' + filePath; // se une la ruta absoluta con el nombre del archivo
-            resolve(readPath(filePath, pathAdsoluta));// Se resuelve la promesa con la lectura el archivo encontrado
+            resolve(readPath(filePath));// Se resuelve la promesa con la lectura el archivo encontrado
         } else  { // Informa al usuario el tipo de extensión del archivo y que no podrá ser procesado
             reject(console.log('Este archivo es', modulePath.extname(filePath), 'no podemos procesarlo'))
         }
     })
 }
 
-// Comprueba los archivos dentro de un directorio
+// Comprueba los archivos dentro de un directorio, se usa el método 'fs.readdir'
 const searchTheDirectory = (path) => {
     return new Promise((resolve, reject) => {
         fs.readdir(path, (err, files) => { // Entra en el directorio  
             if (err) { // si hay un error se imprime el error en consola
-                reject(console.log('Este directorio no contiene archivos .md', err.message));
+                reject(console.log('Este directorio presenta una error:', err.message));
             } else { // recorre los archivos dentro del directorio, buscando los que tengan extensión .md
+                let foundPaths = [];  // creo una variable con un array vacío, para ingresar los archivos .md encontrados
                 files.forEach(file => { // recorro los archivos encontrados
-                    if (modulePath.extname(file) === '.md') { // verifico los que sean extensión .md
+                    if(modulePath.extname(file) === '.md') { // verifico los que sean extensión .md
                       const test = modulePath.resolve(path); // se valida la ruta absoluta del archivo
-                      const pathAdsoluta = test + '\\' + file;// se une la ruta absoluta con el nombre del archivo
-                      resolve(readPath(path, pathAdsoluta)); // Se resuelve la promesa con la lectura el archivo encontrado
+                      const pathAdsolute = test + '\\' + file;// se une la ruta absoluta con el nombre del archivo
+                      foundPaths.push(pathAdsolute) // lleno mi array con los archivos .md encontrados
+                      resolve(readPath(pathAdsolute)); // Se resuelve la promesa con la lectura el archivo encontrado
+                    } else {// si existe un archivo que no sea .md se imprime en consola mensaje para el usuario.
+                        reject(console.log('Este directorio contiene archivos:', file, 'que no pueden ser procesados'));
                     }
                 })
             }
@@ -61,8 +63,8 @@ const searchTheDirectory = (path) => {
     })
 }
 
-// Función que lee los archivos encontrados
-const readPath = (path, pathAdsoluta) => {
+// Función que lee los archivos encontrados, se usa el método 'fs.readFile'
+const readPath = (path) => {
     return new Promise((resolve, reject) => {
         fs.readFile(path, 'UTF8', (err, data) => { // se lee la ruta recibida y se convierte.
             if(err) { // Si hay un error con la ruta, se hace reject de la promesa
@@ -77,7 +79,7 @@ const readPath = (path, pathAdsoluta) => {
                         foundLinks.push({ // Le hago un push de cada objeto a mi array foundLinks
                             href: text[2],
                             text: text[1],
-                            file : pathAdsoluta
+                            file : path
                         })
                     }
                 resolve(console.log(foundLinks)) // se resuelve la promesa mostrando en consola mi array con objetos
