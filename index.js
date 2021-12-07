@@ -2,15 +2,18 @@ module.exports = () => {
   // ...
 };
 
-const fs = require('fs');
-const modulePath = require('path');
+const fs = require('fs')
+const modulePath = require('path')
+const axios = require('axios')
 
 //Función MDLinks
 const mdLinks = (path, options) => {
-  return new Promise((resolve, reject) => {
-      
-        resolve(checkingValidPath(path));   
-  })
+   const validate = options.validate
+  return checkingValidPath(path)
+    
+  .then((links) => {
+       consultHttp(links)
+    }).catch((err) => console.log('Aqui el catch:', err))
 }
 
 
@@ -33,7 +36,9 @@ const checkingValidPath = (path) => {
 const verifyingTypePath = (filePath) => {
     return new Promise((resolve, reject) => {
         if (modulePath.extname(filePath) === '.md') { //Comprueba que la extensión de el archivo es '.md'
-            resolve(readPath(filePath));// Se resuelve la promesa con la lectura el archivo encontrado
+            const test = modulePath.resolve(filePath); // se valida la ruta absoluta del archivo
+            const pathAdsolute = test + '\\' + filePath;// se une la ruta absoluta con el nombre del archivo
+            resolve(readPath(filePath)); // Se resuelve la promesa con la lectura el archivo encontrado
         } else  { // Se rechaza la promesa y se informa al usuario el tipo de extensión del archivo y que no podrá ser procesado
             reject(console.log('Este archivo es', modulePath.extname(filePath), 'no podemos procesarlo'))
         }
@@ -42,7 +47,7 @@ const verifyingTypePath = (filePath) => {
 
 // Comprueba los archivos dentro de un directorio, se usa el método 'fs.readdir'
 const searchTheDirectory = (path) => {
-    return new Promise((resolve, reject) => {
+   return new Promise((resolve, reject) => {
         fs.readdir(path, (err, files) => { // Entra en el directorio  
             if (err) { // si hay un error se rechaza la promesa y se imprime el error en consola
                 reject(console.log('Este directorio presenta una error:', err.message));
@@ -77,17 +82,34 @@ const readPath = (path) => {
                     const link = { // Creo mi objeto de arrays
                         href: text[2],
                         text: text[1],
-                        file : path
+                        file: path
                     }
                     return link
                 })
-                resolve(console.log(links)) // se resuelve la promesa mostrando en consola mi array con objetos
+                resolve(links) // se resuelve la promesa mostrando en consola mi array con objetos
             }   
         })
     })
 }
 
-// './Modulos/' --- 'README.md'
-mdLinks('./Modulos/prueba2.md')
-    .then(() => console.log('***Proceso exitoso***'))
-    .catch(err => console.error('Por favor, verifique'));
+// Función para realizar la consulta http. Usando Axios
+const consultHttp = (arr) => {
+   arr.map(element => {
+        const myElement = element.href
+        axios.get(myElement)
+        .then((response) => {
+            const status = response.status;
+            const ok = response.statusText;
+            const https = {
+                status: status,
+                ok: ok
+            }
+            return https
+        }) .catch(err => {
+            console.log('Obtuvimos un error al consultar la ruta', err);
+        })  
+    })
+}
+
+// Rutas de prueba: './Modulos/' --- 'README.md'
+mdLinks('./Modulos/prueba.md', {validate: true})
