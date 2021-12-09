@@ -8,12 +8,14 @@ const axios = require('axios')
 
 //Función MDLinks
 const mdLinks = (path, options) => {
-   const validate = options.validate
-  return checkingValidPath(path)
-    
+  return checkingValidPath(path)  
   .then((links) => {
-       consultHttp(links)
-    }).catch((err) => console.log('Aqui el catch:', err))
+      if(options) {
+        return consultHttp(links)
+      }
+        console.log(links)
+        return links
+    }).catch((err) => console.log('Aqui el catch de mdLinks:', err))
 }
 
 
@@ -94,22 +96,39 @@ const readPath = (path) => {
 
 // Función para realizar la consulta http. Usando Axios
 const consultHttp = (arr) => {
-   arr.map(element => {
+  arr.map(element => {
         const myElement = element.href
         axios.get(myElement)
         .then((response) => {
             const status = response.status;
             const ok = response.statusText;
             const https = {
+                href: element.href,
+                text: element.text,
+                file: element.file,
                 status: status,
                 ok: ok
             }
+            console.log(https)
             return https
-        }) .catch(err => {
-            console.log('Obtuvimos un error al consultar la ruta', err);
+        }) .catch((err) => {
+            const response = err.response;
+            const status = response.status;
+            if(status >= 400) {
+                const https = {
+                    href: element.href,
+                    text: element.text,
+                    file: element.file,
+                    status: 404,
+                    ok: 'Fail'
+                }
+                console.log(https)
+
+            }
         })  
     })
 }
+
 
 // Rutas de prueba: './Modulos/' --- 'README.md'
 mdLinks('./Modulos/prueba.md', {validate: true})
